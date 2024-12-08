@@ -1,43 +1,3 @@
-
-
-import cgi
-import os
-import shutil
-
-print("Content-type: text/html\n")  # Necessary for CGI to recognize the content type as HTML
-
-# Function to organize files based on their extension
-def organize_files(directory):
-    file_types = {
-        "Images": [".jpg", ".jpeg", ".png", ".gif", ".bmp"],
-        "Documents": [".pdf", ".doc", ".docx", ".txt", ".pptx"],
-        "Spreadsheets": [".xls", ".xlsx", ".csv"],
-        "Videos": [".mp4", ".avi", ".mkv", ".mov"],
-        "Archives": [".zip", ".rar", ".7z", ".tar"],
-        "Others": []
-    }
-
-    # Create subfolders for each file type
-    for category in file_types:
-        category_path = os.path.join(directory, category)
-        if not os.path.exists(category_path):
-            os.makedirs(category_path)
-
-    # Organize files into respective subfolders
-    for file in os.listdir(directory):
-        file_path = os.path.join(directory, file)
-        if os.path.isfile(file_path):
-            moved = False
-            for category, extensions in file_types.items():
-                if any(file.lower().endswith(ext) for ext in extensions):
-                    shutil.move(file_path, os.path.join(directory, category, file))
-                    moved = True
-                    break
-            if not moved:
-                shutil.move(file_path, os.path.join(directory, "Others", file))
-
-# HTML template for the form and results
-html_content = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -51,18 +11,15 @@ html_content = """
             padding: 0;
             background-color: #f0f0f0;
         }
-
         header {
             background-color: #333;
             color: white;
             padding: 20px;
             text-align: center;
         }
-
         h1 {
             margin-bottom: 10px;
         }
-
         section {
             margin: 20px;
             padding: 20px;
@@ -70,7 +27,6 @@ html_content = """
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-
         footer {
             text-align: center;
             padding: 10px;
@@ -80,19 +36,16 @@ html_content = """
             width: 100%;
             bottom: 0;
         }
-
+        form input, form button {
+            padding: 10px;
+            margin: 5px;
+        }
         ul {
             color: green;
             list-style-type: none;
         }
-
         ul li.danger {
             color: red;
-        }
-
-        form input, form button {
-            padding: 10px;
-            margin: 5px;
         }
     </style>
 </head>
@@ -104,23 +57,13 @@ html_content = """
 
     <section class="task-automation">
         <h2>Automate File Organization</h2>
-        <form method="POST" action="index.py">
+        <form method="POST">
             <input type="text" name="folder_path" placeholder="Enter Folder Path" required>
             <button type="submit">Organize Files</button>
         </form>
-"""
-
-# Processing the form and calling the Python function
-form = cgi.FieldStorage()
-folder_path = form.getvalue("folder_path")
-
-if folder_path and os.path.exists(folder_path):
-    organize_files(folder_path)
-    html_content += f"<p>Files in the folder '{folder_path}' have been organized successfully!</p>"
-else:
-    html_content += "<p class='danger'>Please provide a valid folder path.</p>"
-
-html_content += """
+        {% if message %}
+            <p>{{ message }}</p>
+        {% endif %}
     </section>
 
     <footer>
@@ -128,6 +71,3 @@ html_content += """
     </footer>
 </body>
 </html>
-"""
-
-print(html_content)  # Print the HTML content
